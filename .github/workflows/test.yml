@@ -37,5 +37,5 @@ jobs:
           base-url: ${{ inputs.base_url }}
           api-token: ${{ secrets.THREATCHECK_API_TOKEN }}
           product-id: ${{ inputs.product_id }}
-          artifact-path: 'test-artifact.bin'
+          artifact-path: 'tests-assets/firmware.bin'
           version: ${{ inputs.version }}
