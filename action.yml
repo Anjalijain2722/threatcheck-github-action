@@ -11,7 +11,7 @@ inputs:
     description: 'ThreatCheck gateway URL. No default - the public base path is still being finalized. For local testing, point this at your local ThreatCheck stack.'
     required: true
   api-token:
-    description: 'ThreatCheck API token with the scanning:sbom:manage scope. Pass via a secret, e.g. ${{ secrets.THREATCHECK_API_TOKEN }} - never hardcode it in the workflow file.'
+    description: 'ThreatCheck API token with the scanning:sbom:manage scope. Pass via a workflow secret - never hardcode it directly in a workflow file.'
     required: true
   product-id:
     description: 'Existing ThreatCheck product to upload to (e.g. prd_01J9ZQK3QW8YB2VN4T6H5M0XD1). Products are created in the portal, not by this action.'
