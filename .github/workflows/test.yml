@@ -1,0 +1,41 @@
+name: Test ThreatCheck Upload & Scan
+
+# workflow_dispatch inputs render as an actual form in the GitHub Actions UI —
+# this is the closest equivalent to the Jenkins job config form you saw earlier.
+# The API token is deliberately NOT an input here: workflow_dispatch inputs are
+# visible in the run's UI/logs (unlike secrets), so it stays a repo secret instead.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'ThreatCheck base URL (e.g. http://localhost:4000 for local testing)'
+        required: true
+        type: string
+      product_id:
+        description: 'ThreatCheck product id'
+        required: true
+        default: 'prd_test123'
+        type: string
+      version:
+        description: 'Release version (leave blank to use the run number)'
+        required: false
+        type: string
+
+jobs:
+  test-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create a dummy artifact
+        run: echo "test artifact content, run ${{ github.run_number }}" > test-artifact.bin
+
+      - name: ThreatCheck upload & scan
+        uses: ./   # tests this repo's own action directly - swap to org/repo@v1 once published elsewhere
+        with:
+          base-url: ${{ inputs.base_url }}
+          api-token: ${{ secrets.THREATCHECK_API_TOKEN }}
+          product-id: ${{ inputs.product_id }}
+          artifact-path: 'test-artifact.bin'
+          version: ${{ inputs.version }}

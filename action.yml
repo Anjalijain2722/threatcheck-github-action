@@ -1,0 +1,59 @@
+name: 'ThreatCheck: Upload & Scan'
+description: 'Uploads a build artifact to ThreatCheck and triggers a binary composition scan. Exits as soon as the scan is queued - does not poll for results or fail the workflow on findings.'
+author: 'ThreatCheck'
+
+branding:
+  icon: 'upload-cloud'
+  color: 'purple'
+
+inputs:
+  base-url:
+    description: 'ThreatCheck gateway URL. No default - the public base path is still being finalized. For local testing, point this at your local ThreatCheck stack.'
+    required: true
+  api-token:
+    description: 'ThreatCheck API token with the scanning:sbom:manage scope. Pass via a secret, e.g. ${{ secrets.THREATCHECK_API_TOKEN }} - never hardcode it in the workflow file.'
+    required: true
+  product-id:
+    description: 'Existing ThreatCheck product to upload to (e.g. prd_01J9ZQK3QW8YB2VN4T6H5M0XD1). Products are created in the portal, not by this action.'
+    required: true
+  artifact-path:
+    description: 'Path to the built artifact, relative to the workspace.'
+    required: true
+  version:
+    description: 'Release label - your build/tag identifier. Defaults to the GitHub run number if not set.'
+    required: false
+    default: ''
+  content-type:
+    description: 'Must match the artifact''s actual type - a mismatch is rejected after the full upload completes.'
+    required: false
+    default: 'application/octet-stream'
+
+outputs:
+  product-scan-id:
+    description: 'The ThreatCheck scan id that was queued'
+    value: ${{ steps.upload.outputs.product-scan-id }}
+  product-version-id:
+    description: 'The ThreatCheck release/version id the artifact was attached to'
+    value: ${{ steps.upload.outputs.product-version-id }}
+  upload-id:
+    description: 'The ThreatCheck upload id (safe to log - the presigned upload URL itself never is)'
+    value: ${{ steps.upload.outputs.upload-id }}
+  status:
+    description: 'Upload status returned by the complete step, e.g. "hashing"'
+    value: ${{ steps.upload.outputs.status }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Upload artifact and trigger scan
+      id: upload
+      shell: bash
+      env:
+        THREATCHECK_BASE_URL: ${{ inputs.base-url }}
+        THREATCHECK_API_TOKEN: ${{ inputs.api-token }}
+        THREATCHECK_PRODUCT_ID: ${{ inputs.product-id }}
+        THREATCHECK_ARTIFACT_PATH: ${{ inputs.artifact-path }}
+        THREATCHECK_VERSION: ${{ inputs.version }}
+        THREATCHECK_CONTENT_TYPE: ${{ inputs.content-type }}
+        GITHUB_RUN_NUMBER: ${{ github.run_number }}
+      run: node "${{ github.action_path }}/scripts/upload-and-scan.js"
